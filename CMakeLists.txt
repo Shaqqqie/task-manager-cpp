@@ -47,11 +47,16 @@ target_link_libraries(task_manager PRIVATE
     task_manager_lib
 )
 
-target_compile_options(task_manager PRIVATE
-    -Wall
-    -Wextra
-    -Wpedantic
-)
+if (MSVC)
+    target_compile_options(task_manager PRIVATE
+        /W4
+    )
+else()
+    target_compile_options(task_manager PRIVATE
+        -Wall
+        -Wextra
+        -Wpedantic
+    )
 
 add_executable(task_manager_tests
     tests/TaskTests.cpp
