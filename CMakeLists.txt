@@ -9,6 +9,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_executable(task_manager 
     src/main.cpp
     src/Task.cpp
+    src/TaskManager.cpp
 )
 
 target_include_directories(task_manager PRIVATE
