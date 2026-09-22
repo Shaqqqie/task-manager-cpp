@@ -38,7 +38,10 @@ public:
     void markComplete();
     void markIncomplete();
 
-    
+    const std::string &getText() const;
+    const std::optional<std::chrono::year_month_day> &getDeadline() const;
+    Priority getPriority() const;
+    bool isCompleted() const;
 
     friend std::ostream &operator<<(
         std::ostream &os,

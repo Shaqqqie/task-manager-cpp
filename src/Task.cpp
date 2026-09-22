@@ -120,3 +120,23 @@ std::ostream &operator<<(
 
   return os;
 }
+
+const std::string &Task::getText() const
+{
+  return text;
+}
+
+const std::optional<std::chrono::year_month_day> &Task::getDeadline() const
+{
+  return deadline;
+}
+
+Priority Task::getPriority() const
+{
+  return priority;
+}
+
+bool Task::isCompleted() const
+{
+  return completed;
+}
