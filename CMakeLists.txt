@@ -27,11 +27,17 @@ target_include_directories(task_manager_lib PUBLIC
     ${PROJECT_SOURCE_DIR}/include
 )
 
-target_compile_options(task_manager_lib PRIVATE
-    -Wall
-    -Wextra
-    -Wpedantic
-)
+if (MSVC)
+    target_compile_options(task_manager_lib PRIVATE
+       /W4
+    )
+else()
+    target_compile_options(task_manager_lib PRIVATE
+        -Wall
+        -Wextra
+        -Wpedantic
+    )
+endif()
 
 add_executable(task_manager 
     src/main.cpp
