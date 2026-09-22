@@ -18,6 +18,8 @@ int main()
     manager.addTask("Study C++", date, Priority::MEDIUM);
     manager.addTask("Buy groceries");
     
+    manager.removeTask(0);
+
     auto &tasks = manager.getTasks();
 
     for(const auto &task: tasks)
