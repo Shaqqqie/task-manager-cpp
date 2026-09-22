@@ -57,6 +57,7 @@ else()
         -Wextra
         -Wpedantic
     )
+endif()
 
 add_executable(task_manager_tests
     tests/TaskTests.cpp
