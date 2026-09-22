@@ -2,12 +2,16 @@
 
 #include <algorithm>
 #include <cctype>
+#include <iomanip>
+#include <ostream>
+#include <sstream>
 #include <stdexcept>
 #include <utility>
 
 std::string Task::validateText(std::string input_text)
 {
-  if (std::all_of(input_text.begin(), input_text.end(), [](unsigned char character){return std::isspace(character);}))
+  if (std::all_of(input_text.begin(), input_text.end(), [](unsigned char character)
+                  { return std::isspace(character); }))
   {
     throw std::invalid_argument("Task text cannot be empty.");
   }
@@ -67,4 +71,52 @@ void Task::markComplete()
 void Task::markIncomplete()
 {
   completed = false;
+}
+
+std::ostream &operator<<(
+    std::ostream &os,
+    const Task &task)
+{
+  os << std::left << std::setw(15) << task.text << " | ";
+
+  if (task.deadline.has_value())
+  {
+    const auto &date = task.deadline.value();
+    std::ostringstream date_format{};
+
+    date_format << "Deadline: "
+                << static_cast<unsigned>(date.day())
+                << '-' << static_cast<unsigned>(date.month())
+                << '-' << static_cast<int>(date.year());
+
+    os << std::left << std::setw(22) << date_format.str() << " | ";
+  }
+  else
+  {
+    os << std::left << std::setw(22) << "Deadline: None" << " | ";
+  }
+
+  switch (task.priority)
+  {
+  case Priority::HIGH:
+    os << std::setw(20) << "Priority: High" << " | ";
+    break;
+  case Priority::MEDIUM:
+    os << std::setw(20) << "Priority: Medium" << " | ";
+    break;
+  case Priority::LOW:
+    os << std::setw(20) << "Priority: Low" << " | ";
+    break;
+  }
+
+  if (task.completed)
+  {
+    os << "Status: Completed";
+  }
+  else
+  {
+    os << "Status: Incomplete";
+  }
+
+  return os;
 }
