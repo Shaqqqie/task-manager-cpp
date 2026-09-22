@@ -20,6 +20,7 @@ private:
     Priority priority;
 
     static std::string validateText(std::string input_text);
+    static std::chrono::year_month_day validateDeadline(std::chrono::year_month_day date);
 
 public:
     Task(std::string input_text, std::optional<std::chrono::year_month_day> new_deadline = {},

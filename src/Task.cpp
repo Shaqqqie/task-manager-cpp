@@ -15,6 +15,16 @@ std::string Task::validateText(std::string input_text)
   return input_text;
 }
 
+std::chrono::year_month_day Task::validateDeadline(std::chrono::year_month_day date)
+{
+  if (!date.ok())
+  {
+    throw std::invalid_argument("Invalid date.");
+  }
+
+  return date;
+}
+
 Task::Task(
     std::string input_text,
     std::optional<std::chrono::year_month_day> new_deadline,
@@ -23,9 +33,9 @@ Task::Task(
       deadline{new_deadline},
       priority{new_priority}
 {
-  if (new_deadline.has_value() && !new_deadline.value().ok())
+  if (new_deadline)
   {
-    throw std::invalid_argument("Invalid date.");
+    deadline = validateDeadline(new_deadline.value());
   }
 }
 
@@ -36,12 +46,7 @@ void Task::changeText(std::string new_text)
 
 void Task::changeDeadline(std::chrono::year_month_day date)
 {
-  if (!date.ok())
-  {
-    throw std::invalid_argument("Invalid date.");
-  }
-
-  deadline = date;
+  deadline = validateDeadline(date);
 }
 
 void Task::removeDeadline()
