@@ -6,7 +6,18 @@
 
 int main()
 {
-    std::cout << "Task manager\n";
+   
+
+    try
+    {
+        Task task{""};
+
+        std::cout << "Task created.\n";
+    }
+    catch(const std::invalid_argument& error)
+    {
+        std::cout << error.what() << '\n';
+    }
 
     return 0;
 }

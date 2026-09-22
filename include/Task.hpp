@@ -19,7 +19,21 @@ private:
     bool completed{false};
     Priority priority;
 
+    static std::string validateText(std::string input_text);
+
 public:
     Task(std::string input_text, std::optional<std::chrono::year_month_day> new_deadline = {},
          Priority new_priority = Priority::LOW);
+    
+    void changeText(std::string new_text);
+    
+    void changeDeadline(std::chrono::year_month_day date);
+    void removeDeadline();
+    
+    void changePriority(Priority new_priority);
+    
+    void markComplete();
+    void markIncomplete();
+
+
 };
