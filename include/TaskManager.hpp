@@ -30,4 +30,7 @@ public:
     std::vector<Task> filterOverdue(std::chrono::year_month_day date) const;
     std::vector<Task> filterDueBy(std::chrono::year_month_day date) const;
     std::vector<Task> filterNoDeadline() const;
+
+    std::vector<Task> sortByDeadline() const;
+    std::vector<Task> sortByPriority() const;
 };

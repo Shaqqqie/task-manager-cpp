@@ -426,20 +426,19 @@ TEST_CASE("filterDueBy filters correctly")
 }
 
 TEST_CASE("filterDueBy throws exception for invalid date")
-    {
-        TaskManager manager;
+{
+    TaskManager manager;
 
-        auto invalid_date = std::chrono::year{2026} / 2 / 31;
+    auto invalid_date = std::chrono::year{2026} / 2 / 31;
 
-
-        REQUIRE_THROWS_AS(manager.filterDueBy(invalid_date), std::invalid_argument);
-    }
+    REQUIRE_THROWS_AS(manager.filterDueBy(invalid_date), std::invalid_argument);
+}
 
 TEST_CASE("filterNoDeadline filters correctly")
 {
     TaskManager manager;
 
-    auto test_date = std::chrono::year{2026}/9/24;
+    auto test_date = std::chrono::year{2026} / 9 / 24;
 
     manager.addTask("Study C++");
     manager.addTask("Pay bills", test_date);
@@ -448,10 +447,81 @@ TEST_CASE("filterNoDeadline filters correctly")
     auto filtered_by_no_deadline = manager.filterNoDeadline();
 
     REQUIRE(filtered_by_no_deadline.size() == 2);
-    
+
     REQUIRE_FALSE(filtered_by_no_deadline.at(0).getDeadline().has_value());
     REQUIRE(filtered_by_no_deadline.at(0).getText() == "Study C++");
 
     REQUIRE_FALSE(filtered_by_no_deadline.at(1).getDeadline().has_value());
     REQUIRE(filtered_by_no_deadline.at(1).getText() == "Buy groceries");
+}
+
+// -----------------------------------------------
+// Sorting
+//------------------------------------------------
+
+TEST_CASE("SortByDeadline sorts tasks by ascending deadline")
+{
+    TaskManager manager;
+
+    auto date1 = std::chrono::year{2026} / 9 / 24;
+    auto date2 = std::chrono::year{2026} / 9 / 30;
+    auto date3 = std::chrono::year{2026} / 9 / 27;
+
+    manager.addTask("Study C++", date1);
+    manager.addTask("Game with friends");
+    manager.addTask("Buy groceries", date2);
+    manager.addTask("Pay bills", date3);
+    manager.addTask("Submit assignment");
+
+    auto sorted_tasks = manager.sortByDeadline();
+
+    REQUIRE(sorted_tasks.size() == 5);
+    REQUIRE(sorted_tasks.at(0).getDeadline().value() == date1);
+    REQUIRE(sorted_tasks.at(0).getText() == "Study C++");
+
+    REQUIRE(sorted_tasks.at(1).getDeadline().value() == date3);
+    REQUIRE(sorted_tasks.at(1).getText() == "Pay bills");
+
+    REQUIRE(sorted_tasks.at(2).getDeadline().value() == date2);
+    REQUIRE(sorted_tasks.at(2).getText() == "Buy groceries");
+
+    REQUIRE_FALSE(sorted_tasks.at(3).getDeadline().has_value());
+    REQUIRE_FALSE(sorted_tasks.at(4).getDeadline().has_value());
+
+    const auto &original_tasks = manager.getTasks();
+
+    REQUIRE(original_tasks.at(0).getText() == "Study C++");
+    REQUIRE(original_tasks.at(1).getText() == "Game with friends");
+    REQUIRE(original_tasks.at(2).getText() == "Buy groceries");
+    REQUIRE(original_tasks.at(3).getText() == "Pay bills");
+    REQUIRE(original_tasks.at(4).getText() == "Submit assignment");
+}
+
+TEST_CASE("sortByPriority sorts tasks from high to low priority")
+{
+    TaskManager manager;
+
+    manager.addTask("Study C++");
+    manager.addTask("Buy groceries", Priority::HIGH);
+    manager.addTask("Pay bills", Priority::MEDIUM);
+    manager.addTask("Game with friends");
+    manager.addTask("Submit assignment", Priority::HIGH);
+
+    auto sorted_by_priority = manager.sortByPriority();
+
+    REQUIRE(sorted_by_priority.size() == 5);
+
+    REQUIRE(sorted_by_priority.at(0).getPriority() == Priority::HIGH);
+    REQUIRE(sorted_by_priority.at(1).getPriority() == Priority::HIGH);
+    REQUIRE(sorted_by_priority.at(2).getPriority() == Priority::MEDIUM);
+    REQUIRE(sorted_by_priority.at(3).getPriority() == Priority::LOW);
+    REQUIRE(sorted_by_priority.at(4).getPriority() == Priority::LOW);
+
+    const auto &original_tasks = manager.getTasks();
+
+    REQUIRE(original_tasks.at(0).getText() == "Study C++");
+    REQUIRE(original_tasks.at(1).getText() == "Buy groceries");
+    REQUIRE(original_tasks.at(2).getText() == "Pay bills");
+    REQUIRE(original_tasks.at(3).getText() == "Game with friends");
+    REQUIRE(original_tasks.at(4).getText() == "Submit assignment");
 }

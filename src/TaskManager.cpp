@@ -194,3 +194,34 @@ std::vector<Task> TaskManager::filterNoDeadline() const
 
     return filtered_by_no_deadline;
 }
+
+std::vector<Task> TaskManager::sortByDeadline() const
+{
+    std::vector<Task> sorted_tasks{tasks};
+
+    std::ranges::sort(sorted_tasks,
+                      [](const Task &lhs, const Task &rhs)
+                      {
+                        if (lhs.getDeadline().has_value() && rhs.getDeadline().has_value())
+                        {
+                            return lhs.getDeadline().value() < rhs.getDeadline().value();
+                        } 
+                        else if (lhs.getDeadline().has_value() && !rhs.getDeadline().has_value())
+                        {
+                            return true;
+                        }
+                    return false; });
+
+    return sorted_tasks;
+}
+
+std::vector<Task> TaskManager::sortByPriority() const
+{
+    std::vector<Task> sorted_tasks{tasks};
+
+    std::ranges::sort(sorted_tasks, [](const Task &lhs, const Task &rhs) {
+        return lhs.getPriority() < rhs.getPriority();
+    });
+
+    return sorted_tasks;
+}
