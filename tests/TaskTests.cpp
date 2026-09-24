@@ -14,6 +14,15 @@ TEST_CASE("Task is created with correct default values")
     REQUIRE_FALSE(task.isCompleted());
 }
 
+TEST_CASE("Task is created correctly with text and priority")
+{
+    Task task("Study C++", Priority::MEDIUM);
+
+    REQUIRE(task.getText() == "Study C++");
+    REQUIRE_FALSE(task.getDeadline().has_value());
+    REQUIRE(task.getPriority() == Priority::MEDIUM);
+}
+
 TEST_CASE("Task rejects invalid text")
 {
     // Empty string

@@ -29,6 +29,11 @@ std::chrono::year_month_day Task::validateDeadline(std::chrono::year_month_day d
   return date;
 }
 
+Task::Task(std::string input_text, Priority new_priority)
+    : Task(std::move(input_text), {}, new_priority)
+{
+}
+
 Task::Task(
     std::string input_text,
     std::optional<std::chrono::year_month_day> new_deadline,
