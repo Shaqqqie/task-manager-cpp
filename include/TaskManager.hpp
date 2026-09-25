@@ -33,4 +33,6 @@ public:
 
     std::vector<Task> sortByDeadline() const;
     std::vector<Task> sortByPriority() const;
+
+    void setTasks(std::vector<Task> new_tasks);
 };

@@ -525,3 +525,20 @@ TEST_CASE("sortByPriority sorts tasks from high to low priority")
     REQUIRE(original_tasks.at(3).getText() == "Game with friends");
     REQUIRE(original_tasks.at(4).getText() == "Submit assignment");
 }
+
+TEST_CASE("setTasks works correctly")
+{
+    TaskManager manager;
+
+    manager.addTask("Study C++");
+
+    std::vector<Task> new_tasks{};
+    new_tasks.emplace_back("Buy groceries");
+    new_tasks.emplace_back("Pay bills");
+
+    manager.setTasks(std::move(new_tasks));
+
+    REQUIRE(manager.getTasks().size() == 2);
+    REQUIRE(manager.getTasks().at(0).getText() == "Buy groceries");
+    REQUIRE(manager.getTasks().at(1).getText() == "Pay bills");
+}

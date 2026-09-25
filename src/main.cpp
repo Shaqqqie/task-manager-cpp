@@ -26,5 +26,17 @@ int main()
     {
         std::cout << task << '\n';
     }
+
+ /*
+    try
+    {
+        manager.editTaskText(index, new_text)
+    }
+    catch(const std::invalid_argument &error)
+    {
+        std::cout << "Unable to edit task: " << error.what() << '\n'
+    }
+ */
+
     return 0;
 }

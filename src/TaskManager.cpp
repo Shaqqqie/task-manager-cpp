@@ -225,3 +225,8 @@ std::vector<Task> TaskManager::sortByPriority() const
 
     return sorted_tasks;
 }
+
+void TaskManager::setTasks(std::vector<Task> new_tasks)
+{
+    tasks = std::move(new_tasks);
+}
