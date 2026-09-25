@@ -31,12 +31,12 @@ namespace
         std::ostringstream output;
 
         output << static_cast<int>(date.year())
-                   << '-'
-                   << std::setfill('0') << std::setw(2)
-                   << static_cast<unsigned>(date.month())
-                   <<'-'
-                   << std::setw(2)
-                   <<static_cast<unsigned>(date.day());
+               << '-'
+               << std::setfill('0') << std::setw(2)
+               << static_cast<unsigned>(date.month())
+               << '-'
+               << std::setw(2)
+               << static_cast<unsigned>(date.day());
 
         return output.str();
     }
@@ -76,11 +76,16 @@ namespace
             throw std::invalid_argument("Invalid date format.");
         }
 
+        char extra{};
+        if (input >> extra)
+        {
+            throw std::invalid_argument("Invalid date format");
+        }
+
         std::chrono::year_month_day date{
             std::chrono::year{year},
             std::chrono::month{month},
-            std::chrono::day{day}
-        };
+            std::chrono::day{day}};
 
         if (!date.ok())
         {
@@ -140,36 +145,45 @@ std::vector<Task> TaskStorage::load(const std::filesystem::path &path)
     }
 
     nlohmann::json json_tasks;
-    file >> json_tasks;
-
-    std::vector<Task> tasks{};
-
-    for(const nlohmann::json &json_task: json_tasks)
+    try
     {
-        std::string text{json_task.at("text").get<std::string>()};
-        bool completed{json_task.at("completed").get<bool>()};
-        
-        std::string priority_string{json_task.at("priority").get<std::string>()};
-        Priority priority{stringToPriority(priority_string)};
+        file >> json_tasks;
 
-        std::optional<std::chrono::year_month_day> deadline{};
+        std::vector<Task> tasks{};
 
-        if (!json_task.at("deadline").is_null())
+        for (const nlohmann::json &json_task : json_tasks)
         {
-            std::string deadline_string{json_task.at("deadline").get<std::string>()};
+            std::string text{json_task.at("text").get<std::string>()};
+            bool completed{json_task.at("completed").get<bool>()};
 
-            deadline = stringToDate(deadline_string);
+            std::string priority_string{json_task.at("priority").get<std::string>()};
+            Priority priority{stringToPriority(priority_string)};
+
+            std::optional<std::chrono::year_month_day> deadline{};
+
+            if (!json_task.at("deadline").is_null())
+            {
+                std::string deadline_string{json_task.at("deadline").get<std::string>()};
+
+                deadline = stringToDate(deadline_string);
+            }
+
+            Task task{std::move(text), deadline, priority};
+
+            if (completed)
+            {
+                task.markComplete();
+            }
+
+            tasks.push_back(std::move(task));
         }
-        
-        Task task{std::move(text), deadline, priority};
 
-        if (completed)
-        {
-            task.markComplete();
-        }
-
-        tasks.push_back(std::move(task));
+        return tasks;
     }
 
-    return tasks;
+    catch (const nlohmann::json::exception &error)
+    {
+        throw std::runtime_error(
+            std::string{"JSON error: "} + error.what());
+    }
 }

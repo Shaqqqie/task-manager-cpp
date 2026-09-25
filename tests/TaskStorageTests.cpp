@@ -6,6 +6,29 @@
 #include <fstream>
 #include <nlohmann/json.hpp>
 
+namespace
+{
+    void writeJsonToFile(
+        const std::filesystem::path &path,
+        const nlohmann::json &json
+    )
+    {
+        std::ofstream file{path};
+
+        if (!file)
+        {
+            throw std::runtime_error("Failed to open test file for writing.");
+        }
+
+        file << std::setw(4) << json;
+
+        if (!file)
+        {
+            throw std::runtime_error("Failed to write test file.");
+        }
+    }
+}
+
 TEST_CASE("TaskStorage saves tasks to a file")
 {
     const std::filesystem::path path{"test_tasks.json"};
@@ -105,6 +128,137 @@ TEST_CASE("TaskStorage saves and loads tasks")
     REQUIRE_FALSE(loaded_tasks.at(1).getDeadline().has_value());
     REQUIRE(loaded_tasks.at(1).getPriority() == Priority::MEDIUM);
     REQUIRE_FALSE(loaded_tasks.at(1).isCompleted());
+
+    std::filesystem::remove(path);
+}
+
+TEST_CASE("TaskStorage rejects invalid priority")
+{
+    const std::filesystem::path path{"test_invalid_priority.json"};
+
+    nlohmann::json json_tasks = nlohmann::json::array();
+
+    nlohmann::json json_task;
+
+    json_task["text"] = "Study C++";
+    json_task["priority"] = "Urgent";
+    json_task["completed"] = false;
+    json_task["deadline"] = nullptr;
+
+    json_tasks.push_back(json_task);
+
+    writeJsonToFile(path, json_tasks);
+
+    REQUIRE_THROWS_AS(TaskStorage::load(path), std::invalid_argument);
+
+    std::filesystem::remove(path);
+}
+
+TEST_CASE("TaskStorage rejects invalid calendar date")
+{
+    const std::filesystem::path path{"test_invalid_date.json"};
+
+    nlohmann::json json_tasks = nlohmann::json::array();
+
+    nlohmann::json json_task;
+
+    json_task["text"] = "Study C++";
+    json_task["priority"] = "HIGH";
+    json_task["completed"] = false;
+    json_task["deadline"] = "2026-02-30";
+
+    json_tasks.push_back(json_task);
+
+    writeJsonToFile(path, json_tasks);
+
+    REQUIRE_THROWS_AS(TaskStorage::load(path), std::invalid_argument);
+
+    std::filesystem::remove(path);
+}
+
+TEST_CASE("TaskStorage rejects invalid date format")
+{
+        const std::filesystem::path path{"test_invalid_date.json"};
+
+    nlohmann::json json_tasks = nlohmann::json::array();
+
+    nlohmann::json json_task;
+
+    json_task["text"] = "Study C++";
+    json_task["priority"] = "HIGH";
+    json_task["completed"] = false;
+    json_task["deadline"] = "2026/09/25";
+
+    json_tasks.push_back(json_task);
+
+    writeJsonToFile(path, json_tasks);
+
+    REQUIRE_THROWS_AS(TaskStorage::load(path), std::invalid_argument);
+
+    std::filesystem::remove(path);
+}
+
+TEST_CASE("TaskStorage rejects trailing characters in date")
+{
+            const std::filesystem::path path{"test_invalid_date.json"};
+
+    nlohmann::json json_tasks = nlohmann::json::array();
+
+    nlohmann::json json_task;
+
+    json_task["text"] = "Study C++";
+    json_task["priority"] = "HIGH";
+    json_task["completed"] = false;
+    json_task["deadline"] = "2026-09-25abc";
+
+    json_tasks.push_back(json_task);
+
+   writeJsonToFile(path, json_tasks);
+
+    REQUIRE_THROWS_AS(TaskStorage::load(path), std::invalid_argument);
+
+    std::filesystem::remove(path);
+}
+
+TEST_CASE("Missing priority")
+{
+            const std::filesystem::path path{"test_invalid_date.json"};
+
+    nlohmann::json json_tasks = nlohmann::json::array();
+
+    nlohmann::json json_task;
+
+    json_task["text"] = "Study C++";
+    json_task["completed"] = false;
+    json_task["deadline"] = "2026/09/25";
+
+    json_tasks.push_back(json_task);
+
+    writeJsonToFile(path, json_tasks);
+
+    REQUIRE_THROWS_AS(TaskStorage::load(path), std::runtime_error);
+
+    std::filesystem::remove(path);
+}
+
+TEST_CASE("TaskStorage rejects incorrect field type")
+{
+                const std::filesystem::path path{"test_invalid_date.json"};
+
+    nlohmann::json json_tasks = nlohmann::json::array();
+
+    nlohmann::json json_task;
+
+    json_task["text"] = "Study C++";
+    json_task["priority"] = "HIGH";
+    json_task["completed"] = "false";
+    json_task["deadline"] = "nullptr";
+
+    json_tasks.push_back(json_task);
+
+   writeJsonToFile(path, json_tasks);
+
+    REQUIRE_THROWS_AS(TaskStorage::load(path), std::runtime_error);
 
     std::filesystem::remove(path);
 }
