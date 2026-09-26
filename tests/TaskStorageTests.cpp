@@ -10,8 +10,7 @@ namespace
 {
     void writeJsonToFile(
         const std::filesystem::path &path,
-        const nlohmann::json &json
-    )
+        const nlohmann::json &json)
     {
         std::ofstream file{path};
 
@@ -28,6 +27,10 @@ namespace
         }
     }
 }
+
+// -----------------------------------------------
+// Saving / Loading
+//------------------------------------------------
 
 TEST_CASE("TaskStorage saves tasks to a file")
 {
@@ -132,6 +135,10 @@ TEST_CASE("TaskStorage saves and loads tasks")
     std::filesystem::remove(path);
 }
 
+// -----------------------------------------------
+// Malformed data tests
+//------------------------------------------------
+
 TEST_CASE("TaskStorage rejects invalid priority")
 {
     const std::filesystem::path path{"test_invalid_priority.json"};
@@ -178,7 +185,7 @@ TEST_CASE("TaskStorage rejects invalid calendar date")
 
 TEST_CASE("TaskStorage rejects invalid date format")
 {
-        const std::filesystem::path path{"test_invalid_date.json"};
+    const std::filesystem::path path{"test_invalid_date.json"};
 
     nlohmann::json json_tasks = nlohmann::json::array();
 
@@ -200,7 +207,7 @@ TEST_CASE("TaskStorage rejects invalid date format")
 
 TEST_CASE("TaskStorage rejects trailing characters in date")
 {
-            const std::filesystem::path path{"test_invalid_date.json"};
+    const std::filesystem::path path{"test_invalid_date.json"};
 
     nlohmann::json json_tasks = nlohmann::json::array();
 
@@ -213,7 +220,7 @@ TEST_CASE("TaskStorage rejects trailing characters in date")
 
     json_tasks.push_back(json_task);
 
-   writeJsonToFile(path, json_tasks);
+    writeJsonToFile(path, json_tasks);
 
     REQUIRE_THROWS_AS(TaskStorage::load(path), std::invalid_argument);
 
@@ -222,7 +229,7 @@ TEST_CASE("TaskStorage rejects trailing characters in date")
 
 TEST_CASE("Missing priority")
 {
-            const std::filesystem::path path{"test_invalid_date.json"};
+    const std::filesystem::path path{"test_invalid_date.json"};
 
     nlohmann::json json_tasks = nlohmann::json::array();
 
@@ -243,7 +250,7 @@ TEST_CASE("Missing priority")
 
 TEST_CASE("TaskStorage rejects incorrect field type")
 {
-                const std::filesystem::path path{"test_invalid_date.json"};
+    const std::filesystem::path path{"test_invalid_date.json"};
 
     nlohmann::json json_tasks = nlohmann::json::array();
 
@@ -256,7 +263,48 @@ TEST_CASE("TaskStorage rejects incorrect field type")
 
     json_tasks.push_back(json_task);
 
-   writeJsonToFile(path, json_tasks);
+    writeJsonToFile(path, json_tasks);
+
+    REQUIRE_THROWS_AS(TaskStorage::load(path), std::runtime_error);
+
+    std::filesystem::remove(path);
+}
+
+TEST_CASE("TaskStorage rejects malformed JSON")
+{
+    const std::filesystem::path path{"test_malformed.json"};
+
+    {
+        std::ofstream file{path};
+
+        file << R"(
+        [
+            {
+                "text": "Study C++",
+                "priority": "HIGH",
+                "completed": false,
+                "deadline": null
+        )";
+    }
+
+    REQUIRE_THROWS_AS(TaskStorage::load(path),
+                      std::runtime_error);
+
+    std::filesystem::remove(path);
+}
+
+TEST_CASE("TaskStorage rejects non-array JSON root")
+{
+    const std::filesystem::path path{"test_invalid_root.json"};
+
+    nlohmann::json json_task;
+
+    json_task["text"] = "Study C++";
+    json_task["priority"] = "HIGH";
+    json_task["completed"] = false;
+    json_task["deadline"] = nullptr;
+
+    writeJsonToFile(path, json_task);
 
     REQUIRE_THROWS_AS(TaskStorage::load(path), std::runtime_error);
 

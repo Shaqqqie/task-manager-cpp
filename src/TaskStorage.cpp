@@ -149,6 +149,11 @@ std::vector<Task> TaskStorage::load(const std::filesystem::path &path)
     {
         file >> json_tasks;
 
+        if (!json_tasks.is_array())
+        {
+            throw std::runtime_error("JSON does not conform to TaskStorage format.");
+        }
+
         std::vector<Task> tasks{};
 
         for (const nlohmann::json &json_task : json_tasks)
