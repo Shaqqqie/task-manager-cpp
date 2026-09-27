@@ -21,3 +21,4 @@ Testing/
 
 # Runtime data
 data/*.txt
+data/*.json

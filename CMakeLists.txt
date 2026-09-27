@@ -42,6 +42,8 @@ enable_testing()
 add_library(task_manager_lib
     src/Task.cpp
     src/TaskManager.cpp
+    src/DateUtils.cpp
+    src/PriorityUtils.cpp
 )
 
 target_include_directories(task_manager_lib PUBLIC

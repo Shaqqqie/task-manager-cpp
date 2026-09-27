@@ -1,3 +1,5 @@
+#include "DateUtils.hpp"
+#include "PriorityUtils.hpp"
 #include "TaskStorage.hpp"
 
 #include <fstream>
@@ -6,95 +8,6 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
-
-namespace
-{
-    std::string priorityToString(Priority priority)
-    {
-        switch (priority)
-        {
-        case Priority::HIGH:
-            return "HIGH";
-
-        case Priority::MEDIUM:
-            return "MEDIUM";
-
-        case Priority::LOW:
-            return "LOW";
-        }
-
-        throw std::invalid_argument("Invalid priority.");
-    }
-
-    std::string dateToString(std::chrono::year_month_day date)
-    {
-        std::ostringstream output;
-
-        output << static_cast<int>(date.year())
-               << '-'
-               << std::setfill('0') << std::setw(2)
-               << static_cast<unsigned>(date.month())
-               << '-'
-               << std::setw(2)
-               << static_cast<unsigned>(date.day());
-
-        return output.str();
-    }
-
-    Priority stringToPriority(const std::string &priority)
-    {
-        if (priority == "HIGH")
-        {
-            return Priority::HIGH;
-        }
-        else if (priority == "MEDIUM")
-        {
-            return Priority::MEDIUM;
-        }
-        else if (priority == "LOW")
-        {
-            return Priority::LOW;
-        }
-
-        throw std::invalid_argument("Invalid priority.");
-    }
-
-    std::chrono::year_month_day stringToDate(const std::string &date_string)
-    {
-        std::istringstream input{date_string};
-
-        int year{};
-        unsigned month{};
-        unsigned day{};
-        char separator1{};
-        char separator2{};
-
-        input >> year >> separator1 >> month >> separator2 >> day;
-
-        if (!input || separator1 != '-' || separator2 != '-')
-        {
-            throw std::invalid_argument("Invalid date format.");
-        }
-
-        char extra{};
-        if (input >> extra)
-        {
-            throw std::invalid_argument("Invalid date format");
-        }
-
-        std::chrono::year_month_day date{
-            std::chrono::year{year},
-            std::chrono::month{month},
-            std::chrono::day{day}};
-
-        if (!date.ok())
-        {
-            throw std::invalid_argument("Invalid date.");
-        }
-
-        return date;
-    }
-}
 
 void TaskStorage::save(const std::vector<Task> &tasks, const std::filesystem::path &path)
 {
@@ -162,7 +75,7 @@ std::vector<Task> TaskStorage::load(const std::filesystem::path &path)
             bool completed{json_task.at("completed").get<bool>()};
 
             std::string priority_string{json_task.at("priority").get<std::string>()};
-            Priority priority{stringToPriority(priority_string)};
+            Priority priority{parsePriority(priority_string)};
 
             std::optional<std::chrono::year_month_day> deadline{};
 
@@ -170,7 +83,7 @@ std::vector<Task> TaskStorage::load(const std::filesystem::path &path)
             {
                 std::string deadline_string{json_task.at("deadline").get<std::string>()};
 
-                deadline = stringToDate(deadline_string);
+                deadline = parseDate(deadline_string);
             }
 
             Task task{std::move(text), deadline, priority};
