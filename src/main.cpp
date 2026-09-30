@@ -15,6 +15,7 @@
 void addTask(TaskManager &manager);
 void viewTasks(const TaskManager &manager);
 bool removeTask(TaskManager &manager);
+bool editTask(TaskManager &manager);
 
 int main()
 {
@@ -38,10 +39,7 @@ int main()
                   << "2. View tasks\n"
                   << "3. Edit task\n"
                   << "4. Remove task\n"
-                  << "5. Mark task complete/incomplete\n"
-                  << "6. Filter tasks\n"
-                  << "7. Sort tasks\n"
-                  << "8. Exit\n"
+                  << "5. Exit\n"
                   << "Choose option: ";
 
         if (!(std::cin >> menu_choice))
@@ -73,7 +71,15 @@ int main()
             break;
         }
         case 3:
-            // Edit task
+            if (editTask(manager))
+            {
+                TaskStorage::save(manager.getTasks(), data_path);
+                std::cout << "\nEdit successful.\n";
+            }
+            else
+            {
+                std::cout << "\nCanceled edit operation.\n";
+            }
             break;
         case 4:
             if (removeTask(manager))
@@ -82,15 +88,6 @@ int main()
             }
             break;
         case 5:
-            // Mark task complete/incomplete
-            break;
-        case 6:
-            // Filter tasks
-            break;
-        case 7:
-            // sort tasks
-            break;
-        case 8:
             TaskStorage::save(manager.getTasks(), data_path);
             std::cout << "Tasks saved. Goodbye!\n";
             return 0;
@@ -203,7 +200,7 @@ bool removeTask(TaskManager &manager)
             std::size_t pos{};
             task_number = std::stoi(input, &pos);
 
-            if(pos != input.size())
+            if (pos != input.size())
             {
                 std::cout << "\nInvalid task number.\n";
                 continue;
@@ -216,9 +213,9 @@ bool removeTask(TaskManager &manager)
 
             std::cout << "\nInvalid task number.\n";
         }
-        catch(const std::exception &)
+        catch (const std::exception &)
         {
-                std::cout << "\nInvalid task number.\n";
+            std::cout << "\nInvalid task number.\n";
         }
     }
 
@@ -228,4 +225,180 @@ bool removeTask(TaskManager &manager)
 
     std::cout << "\nTask removed.\n";
     return true;
+}
+
+bool editTask(TaskManager &manager)
+{
+    viewTasks(manager);
+
+    const auto &tasks = manager.getTasks();
+
+    if (tasks.empty())
+    {
+        std::cout << "\nNo tasks to edit.\n";
+        return false;
+    }
+
+    std::string input{};
+    int task_number{};
+
+    while (true)
+    {
+        std::cout << "Task to edit (Q to cancel): ";
+        std::cin >> input;
+
+        if (input == "Q" || input == "q")
+        {
+            return false;
+        }
+
+        try
+        {
+            std::size_t pos{};
+            task_number = std::stoi(input, &pos);
+
+            if (pos != input.size())
+            {
+                std::cout << "\nInvalid task number.\n";
+                continue;
+            }
+
+            if (task_number > 0 && task_number <= static_cast<int>(tasks.size()))
+            {
+                break;
+            }
+
+            std::cout << "\nInvalid task number.\n";
+        }
+        catch (const std::exception &)
+        {
+            std::cout << "\nInvalid task number.\n";
+        }
+    }
+
+    std::size_t index{static_cast<size_t>(task_number) - 1};
+
+    int edit_input{};
+    while (true)
+    {
+        std::cout << '\n'
+                  << task_number << ". " << tasks.at(index) << '\n'
+                  << "What to edit:\n"
+                  << "1. Text\n"
+                  << "2. Deadline\n"
+                  << "3. Priority\n"
+                  << "4. Cancel\n"
+                  << "Choose number: ";
+
+        if (!(std::cin >> edit_input))
+        {
+            std::cout << "\nNot valid input.\n";
+
+            std::cin.clear();
+
+            std::cin.ignore(
+                std::numeric_limits<std::streamsize>::max(),
+                '\n');
+
+            continue;
+        }
+
+        switch (edit_input)
+        {
+        case 1:
+        {
+            std::cin.ignore(
+                std::numeric_limits<std::streamsize>::max(),
+                '\n');
+
+            std::string text{};
+            std::cout << "Enter text: ";
+            std::getline(std::cin, text);
+
+            manager.editTaskText(index, text);
+
+            return true;
+        }
+        case 2:
+        {
+            std::cin.ignore(
+                std::numeric_limits<std::streamsize>::max(),
+                '\n');
+
+            while (true)
+            {
+                std::chrono::year_month_day deadline{};
+                std::string date{};
+
+                std::cout << "Enter date(YYYY-MM-DD)(leave empty for no deadline): ";
+                std::getline(std::cin, date);
+
+                if (date.empty())
+                {
+                    manager.editTaskDeadline(index, std::nullopt);
+                    return true;
+                }
+
+                try
+                {
+                    auto deadline = parseDate(date);
+                    manager.editTaskDeadline(index, deadline);
+                    return true;
+                }
+                catch (const std::invalid_argument &error)
+                {
+                    std::cout << '\n'
+                              << error.what() << '\n';
+                }
+            }
+        }
+        case 3:
+        {
+            std::cin.ignore(
+                std::numeric_limits<std::streamsize>::max(),
+                '\n');
+
+            while (true)
+            {
+                std::cout << "Enter priority (High, Medium, Low): ";
+
+                std::string priority_string{};
+                std::getline(std::cin, priority_string);
+
+                if (priority_string.empty())
+                {
+                    std::cout << "\nCanceled priority editing\n";
+                    break;
+                }
+
+                std::transform(
+                    priority_string.begin(),
+                    priority_string.end(),
+                    priority_string.begin(),
+                    [](unsigned char c)
+                    {
+                        return static_cast<char>(std::toupper(c));
+                    });
+
+                try
+                {
+                    Priority priority{parsePriority(priority_string)};
+                    manager.editTaskPriority(index, priority);
+                    return true;
+                }
+                catch(const std::invalid_argument &error)
+                {
+                    std::cout << '\n' << error.what() << '\n';
+                }
+            }
+            break;
+        }
+        case 4:
+        {
+            return false;
+        }
+        default:
+            std::cout << "\nInvalid option.\n";
+        }
+    }
 }
